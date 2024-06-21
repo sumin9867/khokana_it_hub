@@ -1,0 +1,50 @@
+name: Deploy Jekyll Site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # or the branch you want to deploy from
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.0
+
+    - name: Install Jekyll and Bundler
+      run: gem install jekyll bundler
+
+    - name: Install dependencies
+      run: bundle install
+
+    - name: Build the Jekyll site
+      run: bundle exec jekyll build
+
+    - name: Upload Jekyll site
+      uses: actions/upload-artifact@v4
+      with:
+        name: jekyll-site
+        path: _site/  # The default output directory for Jekyll
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download Jekyll site
+      uses: actions/download-artifact@v4
+      with:
+        name: jekyll-site
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: _site  # This is where Jekyll builds the site by default
